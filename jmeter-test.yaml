@@ -1,0 +1,37 @@
+name: Run JMeter Test
+
+on:
+  push:
+    paths:
+      - '**.jmx'
+  workflow_dispatch:
+
+jobs:
+  run-jmeter:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install Java
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+
+    - name: Install JMeter
+      run: |
+        wget https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz
+        tar -xzf apache-jmeter-5.6.3.tgz
+        echo "JMETER_HOME=$(pwd)/apache-jmeter-5.6.3" >> $GITHUB_ENV
+
+    - name: Run JMeter Test
+      run: |
+        $JMETER_HOME/bin/jmeter -n -t ekyc_Individual_DSC_LoadTest.jmx -l results.jtl
+
+    - name: Upload Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: jmeter-results
+        path: results.jtl
